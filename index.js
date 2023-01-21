@@ -1,5 +1,6 @@
 const audioContext = new AudioContext();
-const badKeys = ["Alt","Arrow","Audio","Enter","Launch","Meta","Play","Tab"];
+const badKeys = ["Alt","Arrow","Audio","Enter","Home","Launch","Meta","Play",
+    "Tab"];
 const gainNode = new GainNode(audioContext);
 const oscillator = new OscillatorNode(audioContext, {frequency: 0});
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container);
@@ -44,9 +45,11 @@ function down(e) {
             if (osmd.cursor.iterator.currentTimeStamp.realValue > 0) {
                 osmd.cursor.previous();
                 playedFirstNote = false;
-            } 
+            }
         }
         else if (strPress.includes("Right")) {osmd.cursor.next();}
+    } else if (strPress.includes("Home") && (activePress === null)) {
+        osmd.cursor.reset();
     }
 }
 
