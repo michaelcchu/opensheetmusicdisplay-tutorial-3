@@ -10,6 +10,7 @@ function render() {
     loadPromise.then(() => {
         osmd.render();
         cursor = osmd.cursor;
+        osmd.FollowCursor = true;
         cursor.show();
     });
 }
