@@ -8,7 +8,6 @@ const value = {"c":0,"d":2,"e":4,"f":5,"g":7,"a":9,"b":11,"#":1,"&":-1};
 let loadPromise; let parts; let press;
 
 let activePress = null; let on = false; let paused; let track; let tuning;
-let normalGain = 0.15;
 
 oscillator.connect(gainNode).connect(audioContext.destination);
 osmd.FollowCursor = true;
