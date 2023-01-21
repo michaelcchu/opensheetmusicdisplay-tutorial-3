@@ -68,7 +68,8 @@ function down(e) {
     const strPress = "" + press;
     if (on && !badKeys.some(badKey => strPress.includes(badKey)) && !paused
         && !e.repeat && (document.activeElement.nodeName !== 'INPUT') 
-        && (press != activePress) && cursor && cursor.next()) {
+        && (press != activePress) && (cursor !== null)) {
+            cursor.next()
             const pitch = cursor.NotesUnderCursor()[0].pitch;
             if (pitch) {
                 const note = {
