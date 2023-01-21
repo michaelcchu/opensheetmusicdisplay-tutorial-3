@@ -4,7 +4,9 @@ const gainNode = new GainNode(audioContext);
 const oscillator = new OscillatorNode(audioContext, {frequency: 0});
 
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container);
-let loadPromise; let parts; let cursor; let on = false; 
+let loadPromise; let parts; let press; let cursor; 
+
+let activePress = null; let on = false; let paused = false;
 const normalGain = 0.15;
 
 oscillator.connect(gainNode).connect(audioContext.destination);
@@ -56,23 +58,51 @@ const tuning = {
     frequency: 440
 };
 
+function key(e) { 
+    if (e.type.includes("key")) {press = e.key;} 
+    else {press = e.changedTouches[0].identifier;}
+    if (["keydown","touchstart"].includes(e.type)) {down(e);} else {up();}
+}
+
+function down(e) {
+    const strPress = "" + press;
+    if (on && !badKeys.some(badKey => strPress.includes(badKey)) && !paused
+        && !e.repeat && (document.activeElement.nodeName !== 'INPUT') 
+        && (press != activePress) && cursor && cursor.next()) {
+            const pitch = cursor.NotesUnderCursor()[0].pitch;
+            if (pitch) {
+                const note = {
+                    pitch: pitch.fundamentalNote + pitch.AccidentalHalfTones, 
+                    octave: pitch.octave + 3,
+                }
+                const freq = toFreq(note);
+                if (activePress === null) {
+                    oscillator.frequency.value = freq;
+                    gainNode.gain.setTargetAtTime(normalGain, 
+                        audioContext.currentTime, 0.015);
+                } else {
+                    oscillator.frequency.setTargetAtTime(freq, 
+                        audioContext.currentTime, 0.003)   
+                }
+                activePress = press;
+            }
+    } else if (strPress.includes("Arrow") && (activePress === null)) {
+        if (strPress.includes("Left")) {cursor.previous();}
+        else if (strPress.includes("Right")) {cursor.next();}
+    }
+}
+
+function up() {
+    if (on && (press === activePress)) {
+        gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.015);
+        activePress = null; 
+    }
+}
+
 function toFreq(note) {
     return tuning.frequency * 2**((note.pitch - tuning.pitch)/12 
         + note.octave - tuning.octave)
 }
-document.addEventListener("keydown", () => {
-    if (cursor) {
-        cursor.next();
-        const pitch = cursor.NotesUnderCursor()[0].pitch;
-        if (pitch) {
-            const note = {
-                pitch: pitch.fundamentalNote + pitch.AccidentalHalfTones, 
-                octave: pitch.octave + 3,
-            }
-            oscillator.frequency.value = toFreq(note);
-            gainNode.gain.setTargetAtTime(normalGain, 
-                audioContext.currentTime, 0.015);
-        }
 
-    }
-});
+const docEventTypes = ["keydown","keyup","touchstart","touchend"];
+for (et of docEventTypes) {document.addEventListener(et, key);}
