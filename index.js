@@ -1,6 +1,14 @@
-const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container);
-let loadPromise; let parts; let cursor;
+const audioContext = new AudioContext();
+const badKeys = ["Alt","Arrow","Audio","Enter","Launch","Meta","Play","Tab"];
+const gainNode = new GainNode(audioContext);
+const oscillator = new OscillatorNode(audioContext, {frequency: 0});
 
+const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container);
+let loadPromise; let parts; let cursor; let on = false; 
+const normalGain = 0.15;
+
+oscillator.connect(gainNode).connect(audioContext.destination);
+gainNode.gain.value = 0;
 
 function render() {
     const track = select.selectedIndex;
@@ -33,6 +41,8 @@ input.addEventListener("change", () => {
              }
 
              render();
+
+             if (!on) {oscillator.start(); on = true;}
         });
         reader.readAsText(file);
     }
@@ -40,6 +50,29 @@ input.addEventListener("change", () => {
 
 select.addEventListener("change", render);
 
+const tuning = {
+    pitch: 9, 
+    octave: 4, 
+    frequency: 440
+};
+
+function toFreq(note) {
+    return tuning.frequency * 2**((note.pitch - tuning.pitch)/12 
+        + note.octave - tuning.octave)
+}
 document.addEventListener("keydown", () => {
-    if (cursor) {cursor.next();}
+    if (cursor) {
+        cursor.next();
+        const pitch = cursor.NotesUnderCursor()[0].pitch;
+        if (pitch) {
+            const note = {
+                pitch: pitch.fundamentalNote + pitch.AccidentalHalfTones, 
+                octave: pitch.octave + 3,
+            }
+            oscillator.frequency.value = toFreq(note);
+            gainNode.gain.setTargetAtTime(normalGain, 
+                audioContext.currentTime, 0.015);
+        }
+
+    }
 });
