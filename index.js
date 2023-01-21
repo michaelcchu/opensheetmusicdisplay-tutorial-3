@@ -5,18 +5,19 @@ const oscillator = new OscillatorNode(audioContext, {frequency: 0});
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container);
 const value = {"c":0,"d":2,"e":4,"f":5,"g":7,"a":9,"b":11,"#":1,"&":-1};
 
-let activePress; let loadPromise; let on = false; let parts; let paused; 
-let press; let track; let tuning;
+let activePress; let loadPromise; let on = false; let parts;
+let press; let track; let tuning; let playedFirstNote;
 
 oscillator.connect(gainNode).connect(audioContext.destination);
 osmd.FollowCursor = true;
 
 function down(e) {
     const strPress = "" + press;
-    if (on && !badKeys.some(badKey => strPress.includes(badKey)) && !paused
+    if (on && !badKeys.some(badKey => strPress.includes(badKey))
         && !e.repeat && (document.activeElement.nodeName !== 'INPUT') 
         && (press != activePress) && (osmd.cursor !== null)) {
-            osmd.cursor.next()
+            if (playedFirstNote) {osmd.cursor.next();} 
+            else {playedFirstNote = true;}
             const cursorNotes = osmd.cursor.NotesUnderCursor();
             if (cursorNotes[0]) {
                 const pitch = cursorNotes[0].pitch;
@@ -39,7 +40,12 @@ function down(e) {
                 }
             }
     } else if (strPress.includes("Arrow") && (activePress === null)) {
-        if (strPress.includes("Left")) {osmd.cursor.previous();}
+        if (strPress.includes("Left")) {
+            if (osmd.cursor.iterator.currentTimeStamp.realValue > 0) {
+                osmd.cursor.previous();
+                playedFirstNote = false;
+            } 
+        }
         else if (strPress.includes("Right")) {osmd.cursor.next();}
     }
 }
@@ -90,7 +96,7 @@ function render() {
 }
 
 function resetVars() {
-    activePress = null; paused = false;
+    activePress = null; playedFirstNote = false;
     tuning = unbundle(tuningNote.value);
     tuning.frequency = +tuningFrequency.value;
     track = select.selectedIndex;
@@ -115,7 +121,7 @@ function unbundle(note) {
 function up() {
     if (on && (press === activePress)) {
         gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.015);
-        activePress = null; 
+        activePress = null;
     }
 }
 
