@@ -70,22 +70,26 @@ function down(e) {
         && !e.repeat && (document.activeElement.nodeName !== 'INPUT') 
         && (press != activePress) && (cursor !== null)) {
             cursor.next()
-            const pitch = cursor.NotesUnderCursor()[0].pitch;
-            if (pitch) {
-                const note = {
-                    pitch: pitch.fundamentalNote + pitch.AccidentalHalfTones, 
-                    octave: pitch.octave + 3,
+            const cursorNotes = cursor.NotesUnderCursor();
+            if (cursorNotes[0]) {
+                const pitch = cursorNotes[0].pitch;
+                if (pitch) {
+                    const note = {
+                        pitch: pitch.fundamentalNote 
+                            + pitch.AccidentalHalfTones, 
+                        octave: pitch.octave + 3,
+                    }
+                    const freq = toFreq(note);
+                    if (activePress === null) {
+                        oscillator.frequency.value = freq;
+                        gainNode.gain.setTargetAtTime(normalGain, 
+                            audioContext.currentTime, 0.015);
+                    } else {
+                        oscillator.frequency.setTargetAtTime(freq, 
+                            audioContext.currentTime, 0.003)   
+                    }
+                    activePress = press;
                 }
-                const freq = toFreq(note);
-                if (activePress === null) {
-                    oscillator.frequency.value = freq;
-                    gainNode.gain.setTargetAtTime(normalGain, 
-                        audioContext.currentTime, 0.015);
-                } else {
-                    oscillator.frequency.setTargetAtTime(freq, 
-                        audioContext.currentTime, 0.003)   
-                }
-                activePress = press;
             }
     } else if (strPress.includes("Arrow") && (activePress === null)) {
         if (strPress.includes("Left")) {cursor.previous();}
