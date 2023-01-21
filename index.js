@@ -2,26 +2,46 @@ const audioContext = new AudioContext();
 const badKeys = ["Alt","Arrow","Audio","Enter","Launch","Meta","Play","Tab"];
 const gainNode = new GainNode(audioContext);
 const oscillator = new OscillatorNode(audioContext, {frequency: 0});
-
 const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container);
-let loadPromise; let parts; let press; let cursor; 
+const value = {"c":0,"d":2,"e":4,"f":5,"g":7,"a":9,"b":11,"#":1,"&":-1};
 
-let activePress = null; let on = false; let paused = false;
-const normalGain = 0.15;
+let loadPromise; let parts; let press;
+
+let activePress = null; let on = false; let paused; let track; let tuning;
+let normalGain = 0.15;
 
 oscillator.connect(gainNode).connect(audioContext.destination);
-gainNode.gain.value = 0;
+osmd.FollowCursor = true;
+
+function resetVars() {
+    activePress = null; paused = false;
+    tuning = unbundle(tuningNote.value);
+    tuning.frequency = +tuningFrequency.value;
+    track = select.selectedIndex;
+    const proposedGain = +gain.value;
+    if (proposedGain <= 1 && proposedGain >= 0) {normalGain = proposedGain;} 
+    else {normalGain = 0.15;}
+    gainNode.gain.value = 0;
+}
+
+function format(x) {return x.trim().toLowerCase();}
+
+function unbundle(note) {
+    let text = format(note); note = text.split('');
+    if (+note.at(-1)) {octave = +note.pop();} else {text += octave;}
+    let pitch = 0; while (note.length) { pitch += value[note.pop()]; }
+    return {pitch:pitch, octave:octave, text:text};
+}
 
 function render() {
-    const track = select.selectedIndex;
+    resetVars();
     for (let i = 0; i < parts.length; i++) {
         osmd.sheet.Instruments[i].Visible = (i === track);
     }
     loadPromise.then(() => {
         osmd.render();
-        cursor = osmd.cursor;
-        osmd.FollowCursor = true;
-        cursor.show();
+        //osmd.cursor.reset();
+        osmd.cursor.show();
     });
 }
 
@@ -52,12 +72,6 @@ input.addEventListener("change", () => {
 
 select.addEventListener("change", render);
 
-const tuning = {
-    pitch: 9, 
-    octave: 4, 
-    frequency: 440
-};
-
 function key(e) { 
     if (e.type.includes("key")) {press = e.key;} 
     else {press = e.changedTouches[0].identifier;}
@@ -68,9 +82,9 @@ function down(e) {
     const strPress = "" + press;
     if (on && !badKeys.some(badKey => strPress.includes(badKey)) && !paused
         && !e.repeat && (document.activeElement.nodeName !== 'INPUT') 
-        && (press != activePress) && (cursor !== null)) {
-            cursor.next()
-            const cursorNotes = cursor.NotesUnderCursor();
+        && (press != activePress) && (osmd.cursor !== null)) {
+            osmd.cursor.next()
+            const cursorNotes = osmd.cursor.NotesUnderCursor();
             if (cursorNotes[0]) {
                 const pitch = cursorNotes[0].pitch;
                 if (pitch) {
@@ -92,8 +106,8 @@ function down(e) {
                 }
             }
     } else if (strPress.includes("Arrow") && (activePress === null)) {
-        if (strPress.includes("Left")) {cursor.previous();}
-        else if (strPress.includes("Right")) {cursor.next();}
+        if (strPress.includes("Left")) {osmd.cursor.previous();}
+        else if (strPress.includes("Right")) {osmd.cursor.next();}
     }
 }
 

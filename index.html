@@ -1,5 +1,85 @@
-<input type="file" id="input" accept=".musicxml">
-<select id="select"></select>
+<!DOCTYPE html>
+<title>EasyPlay7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=0">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=0">
+<link rel="icon" type="image/png" sizes="194x194" href="/favicon-194x194.png?v=0">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=0">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=0">
+<link rel="manifest" href="/site.webmanifest?v=0">
+<link rel="mask-icon" href="/safari-pinned-tab.svg?v=0" color="#5bbad5">
+<link rel="shortcut icon" href="/favicon.ico?v=0">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/mstile-144x144.png?v=0">
+<meta name="theme-color" content="#ffffff">
+<style>
+    input {font-family: monospace,monospace;}
+    textarea {white-space: pre;}
+    #columns {display: flex; flex-wrap: wrap;}
+    .box {padding: 1em;}
+    .panelContent {
+        padding: 1em;
+        border: 0.25em solid black;
+    }
+</style>
+<link rel="stylesheet" href="tabstyles.css">
+<span id="columns">
+    <span class="box">
+        <div class="box">
+            <div class="panelContent">
+                <h1>EasyPlay7</h1>
+            </div>
+        </div>
+        <div class="box">
+            <div class="panelContent">
+                <!-- Tab links -->
+                <div class="tab">
+                    <button class="tablinks" id="preliminaryTab">Preliminary</button>
+                    <button class="tablinks" id="inputTab">Input</button>
+                    <button class="tablinks" id="menuTab">Menu</button>
+                </div>
+                
+                <!-- Tab content -->
+                <div id="Preliminary" class="tabcontent">
+                    <div>
+                        tuning: 
+                        <input id="tuningNote" value="a4" size="4"> 
+                        = 
+                        <input id="tuningFrequency" value="440" size="7">
+                    </div>
+                    <div>
+                        gain: 
+                        <input id="gain" value="0.15" size="4">
+                    </div>
+                </div>
+                
+                <div id="Input" class="tabcontent">
+                    file: 
+                    <input type="file" id="input" accept=".musicxml">
+                    track:
+                    <select id="select"></select>
+                </div>
+                
+                <div id="Menu" class="tabcontent">
+                    <div>
+                        move:
+                        <button id="backwards">backwards</button>
+                        <button id="forwards">forwards</button>
+                        distance: 
+                        <input id="distance" value="1" size="5">
+                    </div>
+                    <div>
+                        help: 
+                        <button id="help">help</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </span>
+</span>
+
+
 <div id="container"></div>
 <script src="opensheetmusicdisplay.min.js"></script>
 <script src="index.js"></script>
+<script src="tabs.js"></script>
